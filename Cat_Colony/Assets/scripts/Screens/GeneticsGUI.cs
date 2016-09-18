@@ -50,11 +50,11 @@ public class GeneticsGUI : MonoBehaviour {
         // create a new genetic info for each genetic node in the cat
         // TODO: this should eventually iterate through a list of each of the cat's gene nodes
 
-        // temp gender
+        // gender
         geneticsInfo = Instantiate(geneticsInfoPrefab);
         geneticsInfo.transform.SetParent(geneticsGrid.transform, false);
         geneticsInfo.transform.Find("Genetics Type").GetComponent<Text>().text = catMaster.Gender;
-        geneticsInfo.transform.Find("Node Text").GetComponent<Text>().text = "Boop a doop!";
+        geneticsInfo.transform.Find("Node Text").GetComponent<Text>().text = catMaster.GenderGene.GeneToString();
         geneticsInfo.GetComponent<Button>().onClick.AddListener(() => StartDescription(catMaster.Gender));
 
         // black gene

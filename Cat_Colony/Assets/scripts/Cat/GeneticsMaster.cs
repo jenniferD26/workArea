@@ -6,5 +6,8 @@ public enum Genetics
     // Black gene
     B,
     b,
-    bl
+    bl,
+    XO,
+    Xo,
+    Y
 }

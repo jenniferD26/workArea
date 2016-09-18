@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 
 /*
             |\___/|
@@ -18,6 +19,8 @@ using System.Collections.Generic;
 
 */
 // should contain all of the cat's genetics + name. Coat, Attributes, Health
+// TODO: give the cat an id for sorting in the breed gui and to keep track of it easier
+// the list in LoveShack should be organized by cat id
 public class CatGenetics : MonoBehaviour {
 
     public GameObject geneticsGUIPrefab;
@@ -34,8 +37,10 @@ public class CatGenetics : MonoBehaviour {
     // info about the gene
     private Dictionary<string, GeneNode> geneDictionary = new Dictionary<string, GeneNode>();
 
-    // the individual gene node
+    // the individual gene nodes
     private GeneNode blackGene = new GeneNode();
+    private GeneNode genderGene = new GeneNode();
+    Material newMat;
 
     //Properties
     public string CatName
@@ -65,12 +70,22 @@ public class CatGenetics : MonoBehaviour {
         get { return personality.ToString(); }
     }
 
+    #region Gene Node Properties
+
     // access to both genes for breeding and punit tables
     public GeneNode BlackGene
     {
         get { return blackGene; }
         set { blackGene = value; }
     }
+
+    // access to both genes for breeding and punit tables
+    public GeneNode GenderGene
+    {
+        get { return genderGene; }
+        set { genderGene = value; }
+    }
+    #endregion
 
     // custom getter for the geneDictionary, can only get no one else should be able to set
     public GeneNode GeneDictionary(string key)
@@ -98,44 +113,47 @@ public class CatGenetics : MonoBehaviour {
     // TODO: possibly make the below it's own funtion so that this isn't done everytime a cat is made?
     void Awake () {
 
-        #region black gene
-        // set the black gene to a random value at start, first gene is always B
+        //THIS IS ALL FOR DEBUGGING PURPOSES AND CAN PROBABLY BE DELETED EVENTUALLY
+        //#region black gene
+        //// set the black gene to a random value at start, first gene is always B
         blackGene.GeneOne = Genetics.B;
 
-        // seed the random number
-        rand = Random.Range(0.0f, 1.0f);
+        //// seed the random number
+        //rand = Random.Range(0.0f, 1.0f);
 
-        // if rand is less than the common case then set the second gene to B
-        if(rand < chance)
-        {
-            blackGene.GeneTwo = Genetics.B;
-        }
+        //// if rand is less than the common case then set the second gene to B
+        //if(rand < chance)
+        //{
+        //    blackGene.GeneTwo = Genetics.B;
+        //}
 
-        // The chance of b, brown coat, of happening is 75% of the percentage remaining
-        else if(rand < chance + (chance * 0.75f))
-        {
-            blackGene.GeneTwo = Genetics.b;
-        }
+        //// The chance of b, brown coat, of happening is 75% of the percentage remaining
+        //else if(rand < chance + (chance * 0.75f))
+        //{
+        //    blackGene.GeneTwo = Genetics.b;
+        //}
 
-        // otherwise the bl gene is assigned
-        else
-        {
-            blackGene.GeneTwo = Genetics.bl;
-        }
-        #endregion
+        //// otherwise the bl gene is assigned
+        //else
+        //{
+        //    blackGene.GeneTwo = Genetics.bl;
+        //}
+        //#endregion
 
-        #region Gender
-        // the gender is 50/50
-        rand = Random.Range(0.0f, 1.0f);
-        if (rand < 0.5)
-        {
-            gender = "Male";
-        }
-        else
-        {
-            gender = "Female";
-        }
-        #endregion
+        //#region Gender
+        //// the gender is 50/50
+        genderGene.GeneOne = Genetics.Xo;
+        genderGene.GeneTwo = Genetics.Xo;
+        //rand = Random.Range(0.0f, 1.0f);
+        //if (rand < 0.5)
+        //{
+        //    genderGene.GeneTwo = Genetics.Y;
+        //}
+        //else
+        //{
+        //    genderGene.GeneTwo = Genetics.Xo;
+        //}
+        //#endregion
 
         #region Personality
         // the personality, first it selects the category(dictionary) based on the constant chances in the personality dictionary
@@ -159,7 +177,9 @@ public class CatGenetics : MonoBehaviour {
         #endregion
 
         // at the end of all the genetics being set populate the gene dictionary with all of the genenodes
+        // and determine the "names" of the gene pairs
         geneDictionary.Add("BlackGene", blackGene);
+        geneDictionary.Add("GenderGene", genderGene);
     }
 
     // on mouse down is for when the cat is clicked it creates the genetics menu/GUI
@@ -167,5 +187,78 @@ public class CatGenetics : MonoBehaviour {
     {
         geneticsGUI = Instantiate(geneticsGUIPrefab);
         geneticsGUI.GetComponent<GeneticsGUI>().CatMaster = GetComponent<CatGenetics>();
+    }
+
+    // Sets all of the gene strings to the proper names for their set of genes
+    public void DetermineGenes()
+    {
+        Material[] mats = GetComponent<Renderer>().materials;
+
+        // check the black gene and set it
+        if (blackGene.GeneOne == Genetics.B)
+        {
+            coatColor = "Black";
+            newMat = AssetDatabase.LoadAssetAtPath("Assets\\graphics\\materials\\Cat\\Black.mat", typeof(Material)) as Material;
+            mats[0] = newMat;
+            mats[1] = newMat;
+            mats[2] = newMat;
+        }
+        else if(blackGene.GeneOne == Genetics.b)
+        {
+            coatColor = "Brown";
+            newMat = AssetDatabase.LoadAssetAtPath("Assets\\graphics\\materials\\Cat\\Brown.mat", typeof(Material)) as Material;
+            mats[0] = newMat;
+            mats[1] = newMat;
+            mats[2] = newMat;
+        }
+        else if(blackGene.GeneOne == Genetics.bl)
+        {
+            coatColor = "Cinnamon";
+            newMat = AssetDatabase.LoadAssetAtPath("Assets\\graphics\\materials\\Cat\\Cinnamon.mat", typeof(Material)) as Material;
+            mats[0] = newMat;
+            mats[1] = newMat;
+            mats[2] = newMat;
+        }
+
+        // orange overrides the black coat
+        if (genderGene.GeneOne == Genetics.XO)
+        {
+            coatColor = "Orange";
+            newMat = AssetDatabase.LoadAssetAtPath("Assets\\graphics\\materials\\Cat\\Orange.mat", typeof(Material)) as Material;
+            mats[0] = newMat;
+            mats[1] = newMat;
+            mats[2] = newMat;
+        }
+
+        // gender gene
+        if (genderGene.GeneTwo == Genetics.Y)
+        {
+            gender = "Male";
+        }
+        else if (genderGene.GeneTwo == genderGene.GeneOne)
+        {
+            gender = "Female";
+        }
+        else
+        {
+            gender = "Female";
+
+            // if the cat is a tortoiseshell, make it more likely to be black or orange
+            rand = Random.Range(0.0f, 1.0f);
+            if(rand > 0.4)
+            {
+                genderGene.GeneTwo = genderGene.GeneOne;
+            }
+            else
+            {
+                coatColor = "Tortoiseshell";
+                newMat = AssetDatabase.LoadAssetAtPath("Assets\\graphics\\materials\\Cat\\Tortoiseshell.mat", typeof(Material)) as Material;
+                mats[0] = newMat;
+                mats[1] = newMat;
+                mats[2] = newMat;
+            }
+        }
+
+        GetComponent<Renderer>().materials = mats;
     }
 }

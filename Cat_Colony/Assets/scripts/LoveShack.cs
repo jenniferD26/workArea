@@ -44,18 +44,18 @@ public class LoveShack : MonoBehaviour {
     public static string[] catNames;
 
     // create an instance of the love shack just so that other scripts can breed cats
-    private static LoveShack loveShack;
+    private static LoveShack instance;
 
     //Properties
-    public static LoveShack LShack
+    public static LoveShack Instance
     {
-        get { return loveShack; }
+        get { return instance; }
     }
 
     void Start()
     {
         // instantiate the loveshack
-        loveShack = this;
+        instance = this;
 
         catNames = new string[12];
         catNames[0] = "Plague";
@@ -93,6 +93,7 @@ public class LoveShack : MonoBehaviour {
         // the menu is displaying now
         menuDisplaying = true;
         listDone = false;
+        Destroy(breedButton);
 
         // create the breed menu
         breedGUI = Instantiate(breedGUIPrefab);
@@ -110,43 +111,50 @@ public class LoveShack : MonoBehaviour {
         kitten.CatName = catNames[(int)rand];
 
         // set the black gene
-        SetGeneNode(sire.BlackGene, dam.BlackGene, kitten, kitten.BlackGene);
+        SetGeneNode(sire.BlackGene, dam.BlackGene, kitten.BlackGene);
         kitten.BlackGene.Sort();
+
+        // set the gender gene
+        SetGeneNode(sire.GenderGene, dam.GenderGene, kitten.GenderGene);
+        kitten.GenderGene.Sort();
+
+        // tell the kitten to determine the names of its gene pairs
+        kitten.DetermineGenes();
 
         catList.Add(kitten);
 
-        Debug.Log(kitten.BlackGene.GeneToString());
+        Debug.Log(kitten.GenderGene.GeneToString());
     }
 
     // made to make the breeding function smaller, sets a genenode when cats are bred
-    public void SetGeneNode(GeneNode sireGene, GeneNode damGene, CatGenetics baby, GeneNode geneNode)
+    public void SetGeneNode(GeneNode sireGene, GeneNode damGene, GeneNode geneNode)
     {
         // the baby cat has a 50/50 chance for each and every gene
         rand = Random.Range(0.0f, 1.0f);
 
         if (rand < 0.25)
         {
-            // kitten's genes are father's and mothers fist gene
+            // kitten's genes are father's and mothers first gene
             geneNode.GeneOne = sireGene.GeneOne;
             geneNode.GeneTwo = damGene.GeneOne;
         }
         else if (rand < 0.5)
         {
             // kitten's genes are father's second gene and mothers fist gene
-            baby.BlackGene.GeneOne = sireGene.GeneTwo;
-            baby.BlackGene.GeneTwo = damGene.GeneOne;
+            geneNode.GeneOne = sireGene.GeneTwo;
+            geneNode.GeneTwo = damGene.GeneOne;
         }
         else if (rand < 0.75)
         {
             // kitten's genes are father's second gene and mothers fist gene
-            baby.BlackGene.GeneOne = sireGene.GeneOne;
-            baby.BlackGene.GeneTwo = damGene.GeneTwo;
+            geneNode.GeneOne = sireGene.GeneOne;
+            geneNode.GeneTwo = damGene.GeneTwo;
         }
         else if (rand < 1)
         {
             // kitten's genes are father's second gene and mothers fist gene
-            baby.BlackGene.GeneOne = sireGene.GeneTwo;
-            baby.BlackGene.GeneTwo = damGene.GeneTwo;
+            geneNode.GeneOne = sireGene.GeneTwo;
+            geneNode.GeneTwo = damGene.GeneTwo;
         }
     }
 
@@ -165,10 +173,6 @@ public class LoveShack : MonoBehaviour {
             }
             listDone = true;
         }
-        if (menuDisplaying)
-        {
-            Destroy(breedButton);
-        }
 
         if (catList.Count == 0)
         {
@@ -176,15 +180,22 @@ public class LoveShack : MonoBehaviour {
             // add Tom to the list
             catCarrier = Instantiate(catPrefab) as GameObject;
             catCarrier.GetComponentInChildren<CatGenetics>().CatName = "Tom";
-            catCarrier.GetComponentInChildren<CatGenetics>().Gender = "Male";
+            catCarrier.GetComponentInChildren<CatGenetics>().GenderGene.GeneTwo = Genetics.Y;
+            catCarrier.GetComponentInChildren<CatGenetics>().BlackGene.GeneOne = Genetics.b;
             catCarrier.GetComponentInChildren<CatGenetics>().BlackGene.GeneTwo = Genetics.b;
+            catCarrier.GetComponentInChildren<CatGenetics>().DetermineGenes();
+            Debug.Log(catCarrier.GetComponentInChildren<CatGenetics>().GenderGene.GeneToString());
             catList.Add(catCarrier.GetComponentInChildren<CatGenetics>());
 
             // add Sunshine to the list
             catCarrier = Instantiate(catPrefab) as GameObject;
             catCarrier.GetComponentInChildren<CatGenetics>().CatName = "Sunshine";
-            catCarrier.GetComponentInChildren<CatGenetics>().Gender = "Female";
+            catCarrier.GetComponentInChildren<CatGenetics>().GenderGene.GeneOne = Genetics.XO;
+            catCarrier.GetComponentInChildren<CatGenetics>().GenderGene.GeneTwo = Genetics.Xo;
+            catCarrier.GetComponentInChildren<CatGenetics>().BlackGene.GeneOne = Genetics.bl;
             catCarrier.GetComponentInChildren<CatGenetics>().BlackGene.GeneTwo = Genetics.bl;
+            catCarrier.GetComponentInChildren<CatGenetics>().DetermineGenes();
+            Debug.Log(catCarrier.GetComponentInChildren<CatGenetics>().GenderGene.GeneToString());
             catList.Add(catCarrier.GetComponentInChildren<CatGenetics>());
         }
 
